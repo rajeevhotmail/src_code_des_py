@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple
 from pathlib import Path
 from collections import defaultdict
 from code_analyzer import CodebaseAnalyzer
+import networkx as nx
+import matplotlib.pyplot as plt
 
 
 class EnhancedCodeAnalyzer:
@@ -32,8 +34,12 @@ class EnhancedCodeAnalyzer:
                         'technical_details': technical_analysis,
                         'english_description': analyzer.generate_natural_language_description(technical_analysis)
                     }
+            # Generate call graph for this file
+            output_file = f"{Path(file_path).stem}_calls.png"
+            analyzer.generate_call_graph(output_file)
             results[file_path] = {'functions': functions}
         return results
+
 
 
 class EnhancedSemanticAnalyzer:
@@ -201,6 +207,43 @@ class EnhancedSemanticAnalyzer:
             if isinstance(node, ast.Call):
                 operations.append(self._get_call_name(node))
         return operations
+
+
+    def generate_call_graph(self, output_file='function_calls.png'):
+        G = nx.DiGraph()
+
+        # Build the graph first
+        for node in ast.walk(self.tree):
+            if isinstance(node, ast.FunctionDef):
+                G.add_node(node.name)
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Call):
+                        if isinstance(child.func, ast.Name):
+                            G.add_edge(node.name, child.func.id)
+                        elif isinstance(child.func, ast.Attribute):
+                            G.add_edge(node.name, child.func.attr)
+
+        # Create colors list matching the number of nodes
+        colors = ['lightblue'] * len(G.nodes())
+
+        # Create the visualization
+        plt.figure(figsize=(12, 8))
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=True,
+                node_color=colors,
+                node_size=2000,
+                font_size=10,
+                font_weight='bold',
+                arrows=True,
+                edge_color='gray',
+                arrowsize=20)
+
+        plt.savefig(output_file)
+        plt.close()
+
+
+
+
 
 def run_comparison(directory_path: str):
     print("=== Basic Analysis ===")
