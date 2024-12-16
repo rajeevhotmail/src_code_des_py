@@ -20,17 +20,20 @@ class EnhancedCodeAnalyzer:
         else:
             self.analyzers[self.path] = EnhancedSemanticAnalyzer(self.path)
 
+
     def analyze_with_details(self) -> Dict:
         results = {}
         for file_path, analyzer in self.analyzers.items():
             functions = {}
             for node in ast.walk(analyzer.tree):
                 if isinstance(node, ast.FunctionDef):
-                    functions[node.name] = analyzer._analyze_function_purpose(node)
+                    technical_analysis = analyzer._analyze_function_purpose(node)
+                    functions[node.name] = {
+                        'technical_details': technical_analysis,
+                        'english_description': analyzer.generate_natural_language_description(technical_analysis)
+                    }
             results[file_path] = {'functions': functions}
         return results
-
-
 
 
 class EnhancedSemanticAnalyzer:
@@ -42,6 +45,42 @@ class EnhancedSemanticAnalyzer:
         self.api_calls = defaultdict(list)
         self.data_flow = defaultdict(list)
         self.error_patterns = defaultdict(list)
+
+
+    def generate_natural_language_description(self, analysis_data: Dict) -> str:
+        """Converts technical analysis into clear English descriptions"""
+        description = []
+
+        # API Chain Description
+        api_chains = analysis_data['api_hierarchy']  # Changed from 'api_chain' to 'api_hierarchy'
+        if api_chains:
+            description.append("This function performs the following operations:")
+            for chain in api_chains:
+                steps = ' -> '.join(chain['chain'])
+                description.append(f"- Executes {steps}")
+                if chain['args']:
+                    description.append(f"  Using parameters: {', '.join(chain['args'])}")
+
+
+            # Data Flow Description
+        data_flows = analysis_data['data_flow']
+        if data_flows:
+            description.append("\nData handling:")
+            for flow in data_flows:
+                description.append(f"- Creates {flow['variable']} from {flow['type']}")
+                description.append(f"  Used in: {flow['used_in']}")
+
+        # Error Handling Description
+        error_patterns = analysis_data['error_handling']
+        if error_patterns:
+            description.append("\nError management:")
+            for pattern in error_patterns:
+                for handler in pattern['handlers']:
+                    description.append(f"- Handles {handler['exception']} errors by {handler['recovery']}")
+
+        return '\n'.join(description)
+
+
 
     def _analyze_function_purpose(self, node: ast.FunctionDef) -> Dict:
         analysis = {
@@ -186,9 +225,8 @@ def run_comparison(directory_path: str):
             print(f"\nFunction: {func_name}")
             print(f"Basic: {basic_funcs[func_name]['purpose']}")
             print("Enhanced:")
-            print(f"  API Chain: {enhanced_funcs[func_name]['api_hierarchy']}")
-            print(f"  Data Flow: {enhanced_funcs[func_name]['data_flow']}")
-            print(f"  Error Handling: {enhanced_funcs[func_name]['error_handling']}")
+            print(f"  Technical Details: {enhanced_funcs[func_name]['technical_details']}")
+            print(f"  English Description: {enhanced_funcs[func_name]['english_description']}")
 
 
 
