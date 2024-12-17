@@ -6,6 +6,9 @@ from collections import defaultdict
 from code_analyzer import CodebaseAnalyzer
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
+from git import Repo
+import tempfile
 
 
 class EnhancedCodeAnalyzer:
@@ -23,6 +26,25 @@ class EnhancedCodeAnalyzer:
             self.analyzers[self.path] = EnhancedSemanticAnalyzer(self.path)
 
 
+
+
+
+    def analyze_github_repo(self, repo_url: str):
+        """Analyzes Python files from a GitHub repository"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Clone the repository
+            Repo.clone_from(repo_url, temp_dir)
+
+            # Analyze the cloned repo
+            results = self.analyze_with_details()
+
+            # Generate report
+            self.save_analysis_report(results, 'github_analysis_report.md')
+
+            return results
+
+
+
     def analyze_with_details(self) -> Dict:
         results = {}
         for file_path, analyzer in self.analyzers.items():
@@ -37,8 +59,31 @@ class EnhancedCodeAnalyzer:
             # Generate call graph for this file
             output_file = f"{Path(file_path).stem}_calls.png"
             analyzer.generate_call_graph(output_file)
-            results[file_path] = {'functions': functions}
+
+            # Add file-level summary
+            file_summary = analyzer.generate_file_summary(functions)
+            results[file_path] = {
+                'functions': functions,
+                'file_summary': file_summary
+            }
         return results
+
+
+    def save_analysis_report(self, results, output_file='analysis_report.md'):
+        with open(output_file, 'w') as f:
+            f.write("# Code Analysis Report\n\n")
+            for file_path, analysis in results.items():
+                f.write(f"## Analysis for {file_path}\n\n")
+                f.write(f"### File Summary\n{analysis['file_summary']}\n\n")
+                f.write("### Function Details\n")
+                for func_name, details in analysis['functions'].items():
+                    f.write(f"#### {func_name}\n")
+                    f.write(f"Description: {details['english_description']}\n")
+                    tech_details = json.dumps(details['technical_details'], indent=2)
+                    f.write(f"Technical Details:\n```json\n{tech_details}\n```\n\n")
+
+
+
 
 
 
@@ -209,24 +254,28 @@ class EnhancedSemanticAnalyzer:
         return operations
 
 
+
     def generate_call_graph(self, output_file='function_calls.png'):
         G = nx.DiGraph()
 
-        # Build the graph first
+        def visit_node(node):
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name):
+                    G.add_edge(current_function, node.func.id)
+                elif isinstance(node.func, ast.Attribute):
+                    G.add_edge(current_function, node.func.attr)
+            for child in ast.iter_child_nodes(node):
+                visit_node(child)
+
+        # Build the graph
         for node in ast.walk(self.tree):
             if isinstance(node, ast.FunctionDef):
-                G.add_node(node.name)
-                for child in ast.walk(node):
-                    if isinstance(child, ast.Call):
-                        if isinstance(child.func, ast.Name):
-                            G.add_edge(node.name, child.func.id)
-                        elif isinstance(child.func, ast.Attribute):
-                            G.add_edge(node.name, child.func.attr)
+                current_function = node.name
+                G.add_node(current_function)
+                visit_node(node)
 
-        # Create colors list matching the number of nodes
+        # Create visualization
         colors = ['lightblue'] * len(G.nodes())
-
-        # Create the visualization
         plt.figure(figsize=(12, 8))
         pos = nx.spring_layout(G)
         nx.draw(G, pos, with_labels=True,
@@ -243,6 +292,30 @@ class EnhancedSemanticAnalyzer:
 
 
 
+    def generate_file_summary(self, function_analyses: Dict) -> str:
+        """Creates a file-level summary from individual function analyses"""
+        operations = set()
+        data_patterns = set()
+        error_handling = set()
+
+        for func_analysis in function_analyses.values():
+            tech_details = func_analysis['technical_details']
+            operations.update(tech_details['operations'])
+            if tech_details['data_flow']:
+                data_patterns.add('data transformation')
+            if tech_details['error_handling']:
+                error_handling.add('error management')
+
+        summary = f"This module implements {len(function_analyses)} functions focusing on "
+        summary += f"{', '.join(operations)}. "
+        if data_patterns:
+            summary += "It includes data transformation logic. "
+        if error_handling:
+            summary += "The module implements comprehensive error handling."
+
+        return summary
+
+
 
 
 def run_comparison(directory_path: str):
@@ -257,13 +330,18 @@ def run_comparison(directory_path: str):
     # Display side-by-side comparison for each file
     for file_path in basic_results['relationships'].keys():
         print(f"\nAnalyzing: {file_path}")
+        print("\nFile Summary:")
+        print(enhanced_results[file_path]['file_summary'])
+        print("\nFunction Details:")
         print("Basic Analysis".ljust(50) + "Enhanced Analysis")
         print("-" * 100)
+        print(f"\nAnalyzing: {file_path}")
+
 
         # Compare function analysis
         basic_funcs = basic_results['relationships'][file_path]['functions']
         enhanced_funcs = enhanced_results[file_path]['functions']
-
+        enhanced_analyzer.save_analysis_report(enhanced_results)
         for func_name in basic_funcs.keys():
             print(f"\nFunction: {func_name}")
             print(f"Basic: {basic_funcs[func_name]['purpose']}")
@@ -298,7 +376,7 @@ def run_combined_analysis(directory_path: str):
         print(analysis['error_patterns'])
 
 def main():
-    path = "D:\\python_work\\youtube_bot"
+    path = "D:\\LongT5"
     analyzer = EnhancedCodeAnalyzer(path)
 
     for file_path, semantic_analyzer in analyzer.analyzers.items():
@@ -322,6 +400,9 @@ def main():
                 print("\nOperations:", ', '.join(analysis['operations']))
 
 if __name__ == "__main__":
-    #run_comparison("D:\\python_work\\youtube_bot")
-    run_comparison("D:\\LongT5")
+    #run_comparison("D:\\LongT5")
+    analyzer = EnhancedCodeAnalyzer(".")  # Initialize with any path
+    repo_url = "https://github.com/rajeevhotmail/youtube_speechToText"
+    github_results = analyzer.analyze_github_repo(repo_url)
+
 
