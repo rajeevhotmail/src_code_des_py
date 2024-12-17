@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import json
 from git import Repo
 import tempfile
+import argparse
 
 
 class EnhancedCodeAnalyzer:
@@ -399,10 +400,29 @@ def main():
                         print(f"  Handles {handler['exception']} with {handler['recovery']}")
                 print("\nOperations:", ', '.join(analysis['operations']))
 
+import argparse
+
 if __name__ == "__main__":
-    #run_comparison("D:\\LongT5")
-    analyzer = EnhancedCodeAnalyzer(".")  # Initialize with any path
-    repo_url = "https://github.com/rajeevhotmail/youtube_speechToText"
-    github_results = analyzer.analyze_github_repo(repo_url)
+    parser = argparse.ArgumentParser(description='Code Analysis Tool')
+    parser.add_argument('--github', type=str, help='GitHub repository URL')
+    parser.add_argument('--directory', type=str, help='Local directory path')
+    parser.add_argument('--file', type=str, help='Local file path')
 
+    args = parser.parse_args()
+    analyzer = EnhancedCodeAnalyzer(".")
 
+    if args.github:
+        print(f"Analyzing GitHub repo: {args.github}")
+        results = analyzer.analyze_github_repo(args.github)
+    elif args.directory:
+        print(f"Analyzing directory: {args.directory}")
+        results = analyzer.analyze_with_details()
+    elif args.file:
+        print(f"Analyzing file: {args.file}")
+        results = analyzer.analyze_with_details()
+
+r"""
+python enhanced_analyzer.py --github https://github.com/rajeevhotmail/youtube_speechToText
+python enhanced_analyzer.py --directory D:\myproject
+python enhanced_analyzer.py --file D:\myproject\script.py
+"""
