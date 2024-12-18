@@ -3,7 +3,7 @@
 ## Analysis for .\codeBERT.py
 
 ### File Summary
-This module implements 3 functions focusing on Resource management, API call: decode, API call: read, API call: from_pretrained, API call: generate, API call: no_grad. It includes data transformation logic. 
+This module implements 3 functions focusing on API call: decode, API call: generate, Resource management, API call: from_pretrained, API call: no_grad, API call: read. It includes data transformation logic. 
 
 ### Function Details
 #### setup_model
@@ -83,11 +83,11 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
-    "Resource management",
     "API call: decode",
-    "API call: read",
     "API call: generate",
-    "API call: no_grad"
+    "Resource management",
+    "API call: no_grad",
+    "API call: read"
   ]
 }
 ```
@@ -123,7 +123,7 @@ Technical Details:
 ## Analysis for .\code_analyzer.py
 
 ### File Summary
-This module implements 14 functions focusing on API call: generate_file_summary, API call: lower, API call: analyze_directory, API call: glob, API call: get_exports, API call: startswith, API call: get_dependencies, Conditional logic, API call: _calculate_complexity, API call: _analyze_function_purpose, API call: _detect_file_purpose, API call: join, API call: extend, API call: get_imports, Iteration, API call: parse, API call: append, API call: _get_function_calls, Resource management, API call: walk, API call: read, API call: generate_function_summaries, API call: generate_system_summary, API call: items. It includes data transformation logic. 
+This module implements 14 functions focusing on Conditional logic, API call: generate_file_summary, API call: generate_function_summaries, API call: items, API call: walk, API call: join, API call: glob, API call: startswith, API call: parse, Iteration, API call: _analyze_function_purpose, API call: lower, API call: get_exports, API call: extend, API call: get_dependencies, API call: append, API call: _calculate_complexity, API call: analyze_directory, API call: get_imports, Resource management, API call: generate_system_summary, API call: _get_function_calls, API call: _detect_file_purpose, API call: read. It includes data transformation logic. 
 
 ### Function Details
 #### main
@@ -218,12 +218,12 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "Conditional logic",
+    "Iteration",
     "API call: generate_file_summary",
     "API call: analyze_directory",
     "API call: generate_function_summaries",
     "API call: items",
-    "API call: join",
-    "Iteration"
+    "API call: join"
   ]
 }
 ```
@@ -252,9 +252,9 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "API call: read",
+    "Resource management",
     "API call: parse",
-    "Resource management"
+    "API call: read"
   ]
 }
 ```
@@ -277,8 +277,8 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "Conditional logic",
-    "Iteration",
-    "API call: glob"
+    "API call: glob",
+    "Iteration"
   ]
 }
 ```
@@ -355,14 +355,14 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "API call: generate_file_summary",
     "API call: get_exports",
-    "API call: generate_system_summary",
     "API call: generate_function_summaries",
     "API call: items",
     "API call: get_imports",
-    "Iteration",
-    "API call: get_dependencies"
+    "API call: get_dependencies",
+    "API call: generate_system_summary"
   ]
 }
 ```
@@ -482,10 +482,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
     "API call: walk",
     "API call: extend",
-    "Iteration",
     "API call: append"
   ]
 }
@@ -522,10 +522,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
     "API call: walk",
     "API call: startswith",
-    "Iteration",
     "API call: append"
   ]
 }
@@ -555,10 +555,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
-    "API call: append",
-    "API call: walk"
+    "Conditional logic",
+    "API call: walk",
+    "API call: append"
   ]
 }
 ```
@@ -609,9 +609,9 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "API call: get_imports",
-    "API call: _detect_file_purpose",
     "API call: get_exports",
-    "API call: join"
+    "API call: join",
+    "API call: _detect_file_purpose"
   ]
 }
 ```
@@ -663,12 +663,12 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
-    "API call: _calculate_complexity",
     "API call: walk",
     "API call: _analyze_function_purpose",
-    "Iteration",
-    "API call: _get_function_calls"
+    "API call: _get_function_calls",
+    "API call: _calculate_complexity"
   ]
 }
 ```
@@ -770,11 +770,11 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
-    "API call: lower",
     "API call: walk",
     "API call: join",
-    "Iteration",
+    "API call: lower",
     "API call: append"
   ]
 }
@@ -800,8 +800,8 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
+    "Conditional logic",
     "API call: walk"
   ]
 }
@@ -834,10 +834,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
-    "API call: append",
-    "API call: walk"
+    "Conditional logic",
+    "API call: walk",
+    "API call: append"
   ]
 }
 ```
@@ -866,10 +866,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
     "API call: items",
-    "API call: lower"
+    "API call: lower",
+    "Conditional logic"
   ]
 }
 ```
@@ -877,7 +877,7 @@ Technical Details:
 ## Analysis for .\enhanced_analyzer.py
 
 ### File Summary
-This module implements 23 functions focusing on API call: generate_file_summary, API call: draw, API call: generate_natural_language_description, API call: clone_from, API call: analyze_directory, API call: glob, API call: _get_call_name, API call: generate_call_graph, API call: _get_assignment_type, API call: _get_api_hierarchy, API call: dumps, API call: add_node, API call: _analyze_error_handling, API call: _get_recovery_action, API call: keys, API call: TemporaryDirectory, API call: analyze_with_details, API call: values, API call: _get_operations, API call: add_edge, Conditional logic, API call: nodes, API call: update, API call: savefig, API call: _analyze_function_purpose, API call: _get_call_args, API call: join, API call: DiGraph, API call: figure, API call: close, API call: ljust, Iteration, API call: parse, API call: append, API call: save_analysis_report, API call: _analyze_data_flow, API call: iter_child_nodes, API call: add, Resource management, API call: walk, API call: _get_try_block_info, API call: read, API call: spring_layout, API call: items, API call: _get_call_chain, API call: write. It includes data transformation logic. 
+This module implements 23 functions focusing on Conditional logic, API call: generate_file_summary, API call: keys, API call: _analyze_data_flow, API call: items, API call: walk, API call: join, API call: update, API call: glob, API call: iter_child_nodes, API call: _get_operations, API call: parse, Iteration, API call: analyze_with_details, API call: generate_natural_language_description, API call: _get_call_args, API call: _get_assignment_type, API call: figure, API call: _get_call_name, API call: generate_call_graph, API call: _analyze_function_purpose, API call: TemporaryDirectory, API call: nodes, API call: clone_from, API call: dumps, API call: close, API call: savefig, API call: _get_recovery_action, API call: DiGraph, API call: spring_layout, API call: ljust, API call: add, API call: append, API call: write, API call: analyze_directory, API call: add_node, API call: save_analysis_report, API call: _get_api_hierarchy, Resource management, API call: _get_call_chain, API call: values, API call: add_edge, API call: draw, API call: _get_try_block_info, API call: _analyze_error_handling, API call: read. It includes data transformation logic. 
 
 ### Function Details
 #### run_comparison
@@ -945,12 +945,12 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "API call: analyze_directory",
     "API call: keys",
-    "API call: ljust",
     "API call: analyze_with_details",
-    "Iteration",
-    "API call: save_analysis_report"
+    "API call: save_analysis_report",
+    "API call: ljust"
   ]
 }
 ```
@@ -986,10 +986,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "API call: analyze_directory",
     "Iteration",
-    "API call: analyze_with_details",
-    "API call: items"
+    "API call: items",
+    "API call: analyze_directory",
+    "API call: analyze_with_details"
   ]
 }
 ```
@@ -1052,12 +1052,12 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
-    "API call: walk",
-    "API call: _analyze_function_purpose",
     "API call: items",
+    "API call: walk",
     "API call: join",
-    "Iteration"
+    "API call: _analyze_function_purpose"
   ]
 }
 ```
@@ -1086,9 +1086,9 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "API call: read",
+    "Resource management",
     "API call: parse",
-    "Resource management"
+    "API call: read"
   ]
 }
 ```
@@ -1111,8 +1111,8 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "Conditional logic",
-    "Iteration",
-    "API call: glob"
+    "API call: glob",
+    "Iteration"
   ]
 }
 ```
@@ -1172,11 +1172,11 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
-    "Resource management",
-    "API call: clone_from",
-    "API call: TemporaryDirectory",
     "API call: analyze_with_details",
-    "API call: save_analysis_report"
+    "API call: save_analysis_report",
+    "Resource management",
+    "API call: TemporaryDirectory",
+    "API call: clone_from"
   ]
 }
 ```
@@ -1269,14 +1269,14 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
     "API call: generate_file_summary",
     "API call: generate_natural_language_description",
-    "API call: walk",
-    "API call: _analyze_function_purpose",
     "API call: items",
+    "API call: walk",
     "API call: generate_call_graph",
-    "Iteration"
+    "API call: _analyze_function_purpose"
   ]
 }
 ```
@@ -1361,11 +1361,11 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "API call: dumps",
-    "Resource management",
-    "API call: items",
+    "Iteration",
     "API call: write",
-    "Iteration"
+    "API call: items",
+    "Resource management",
+    "API call: dumps"
   ]
 }
 ```
@@ -1529,9 +1529,9 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "API call: _get_operations",
-    "API call: _analyze_data_flow",
     "API call: _analyze_error_handling",
-    "API call: _get_api_hierarchy"
+    "API call: _get_api_hierarchy",
+    "API call: _analyze_data_flow"
   ]
 }
 ```
@@ -1583,12 +1583,12 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
     "API call: walk",
-    "API call: _get_call_args",
     "API call: _get_call_chain",
-    "Iteration",
-    "API call: append"
+    "API call: append",
+    "API call: _get_call_args"
   ]
 }
 ```
@@ -1627,8 +1627,8 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
+    "Conditional logic",
     "API call: append"
   ]
 }
@@ -1688,13 +1688,13 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
-    "API call: walk",
-    "API call: _get_call_args",
-    "API call: _get_call_name",
     "Iteration",
+    "Conditional logic",
+    "API call: _get_assignment_type",
+    "API call: walk",
+    "API call: _get_call_name",
     "API call: append",
-    "API call: _get_assignment_type"
+    "API call: _get_call_args"
   ]
 }
 ```
@@ -1750,11 +1750,11 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
     "API call: _get_recovery_action",
     "API call: walk",
     "API call: _get_try_block_info",
-    "Iteration",
     "API call: append"
   ]
 }
@@ -1818,10 +1818,10 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
-    "API call: append",
-    "API call: walk"
+    "Conditional logic",
+    "API call: walk",
+    "API call: append"
   ]
 }
 ```
@@ -1883,8 +1883,8 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
+    "Conditional logic",
     "API call: append"
   ]
 }
@@ -1927,10 +1927,10 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
-    "API call: join",
-    "API call: append"
+    "Conditional logic",
+    "API call: append",
+    "API call: join"
   ]
 }
 ```
@@ -1962,10 +1962,10 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "Conditional logic",
     "Iteration",
-    "API call: _get_call_name",
-    "API call: append"
+    "Conditional logic",
+    "API call: append",
+    "API call: _get_call_name"
   ]
 }
 ```
@@ -2131,19 +2131,19 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
-    "API call: draw",
-    "API call: add_node",
-    "API call: iter_child_nodes",
-    "API call: nodes",
-    "API call: savefig",
-    "API call: walk",
-    "API call: spring_layout",
     "API call: DiGraph",
     "API call: figure",
+    "API call: walk",
     "API call: close",
-    "Iteration",
-    "API call: add_edge"
+    "API call: add_node",
+    "API call: nodes",
+    "API call: iter_child_nodes",
+    "API call: add_edge",
+    "API call: draw",
+    "API call: spring_layout",
+    "API call: savefig"
   ]
 }
 ```
@@ -2206,12 +2206,12 @@ Technical Details:
   ],
   "error_handling": [],
   "operations": [
+    "Iteration",
     "Conditional logic",
-    "API call: update",
-    "API call: add",
     "API call: join",
+    "API call: update",
     "API call: values",
-    "Iteration"
+    "API call: add"
   ]
 }
 ```
@@ -2257,8 +2257,8 @@ Technical Details:
   "error_handling": [],
   "operations": [
     "Conditional logic",
-    "Iteration",
     "API call: iter_child_nodes",
+    "Iteration",
     "API call: add_edge"
   ]
 }
@@ -2267,7 +2267,7 @@ Technical Details:
 ## Analysis for .\main.py
 
 ### File Summary
-This module implements 2 functions focusing on API call: create, API call: read, Resource management. It includes data transformation logic. 
+This module implements 2 functions focusing on API call: create, Resource management, API call: read. It includes data transformation logic. 
 
 ### Function Details
 #### summarize_code
@@ -2294,9 +2294,9 @@ Technical Details:
   "data_flow": [],
   "error_handling": [],
   "operations": [
-    "API call: create",
     "API call: read",
-    "Resource management"
+    "Resource management",
+    "API call: create"
   ]
 }
 ```
