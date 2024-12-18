@@ -1,4 +1,5 @@
 from enhanced_analyzer import EnhancedSemanticAnalyzer
+from transformers import LlamaTokenizer, LlamaForCausalLM
 import ast
 import glob
 from typing import Dict, List, Tuple
@@ -10,7 +11,294 @@ import matplotlib.pyplot as plt
 import json
 from git import Repo
 import tempfile
-import argparse
+from transformers import AutoModel
+from transformers import T5ForConditionalGeneration, RobertaTokenizer
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+import torch
+
+class CodeLlamaAnalyzer:
+    def __init__(self):
+        self.model_name = "codellama/CodeLlama-7b-hf"
+        self.tokenizer = LlamaTokenizer.from_pretrained(self.model_name)
+        self.model = LlamaForCausalLM.from_pretrained(self.model_name)
+
+    def generate_summary(self, ast_analysis):
+        prompt = self.create_prompt(ast_analysis)
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        outputs = self.model.generate(**inputs, max_length=100)
+        return self.tokenizer.decode(outputs[0])
+
+    def create_prompt(self, ast_analysis):
+        """Creates a detailed prompt for CodeLlama"""
+        prompt = (
+            "Analyze this Python code structure:\n\n"
+            "Functions:\n"
+        )
+
+        # Add function details
+        for func in ast_analysis['functions']:
+            prompt += f"- {func['name']} (args: {', '.join(func['args'])})\n"
+            prompt += f"  Complexity: {func['complexity']}\n"
+
+        # Add semantic patterns
+        prompt += "\nAPI Patterns:\n"
+        api_calls = ast_analysis['semantic_patterns']['api_patterns']['external_calls']
+        for call in api_calls[:5]:
+            prompt += f"- {call['module']}.{call['function']}\n"
+
+        prompt += "\nGenerate a concise summary of what this code does:"
+        return prompt
+
+
+class GraphCodeBERTAnalyzer:
+    def __init__(self):
+        self.model_name = "microsoft/graphcodebert-base"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
+        self.ast_analysis = None
+
+    def get_specific_functionality(self, features):
+        """Extracts specific functionality from code features"""
+        # Build functionalities from AST analysis
+        functionalities = self.extract_functionalities_from_ast()
+
+        # Get most likely functionality index
+        functionality_scores = torch.nn.functional.softmax(features.mean(dim=-1), dim=0)
+        top_idx = functionality_scores.argmax().item()
+
+        return functionalities.get(top_idx, "complex system operations")
+
+    def extract_functionalities_from_ast(self):
+        """Extracts actual functionalities from code analysis"""
+        functionalities = {}
+        patterns = self.ast_analysis['semantic_patterns']
+
+        # Extract API patterns
+        api_calls = patterns['api_patterns']['external_calls']
+        for idx, call in enumerate(api_calls[:5]):
+            functionalities[idx] = f"{call['module']}.{call['function']} operations"
+
+        # Add function patterns
+        functions = self.ast_analysis['code_structure']['functions']
+        for idx, func in enumerate(functions, start=len(functionalities)):
+            functionalities[idx] = f"{func['name']} functionality"
+
+        return functionalities
+
+
+    def generate_summary(self, ast_analysis):
+        self.ast_analysis = ast_analysis  # Store for use in other methods
+        code_representation = self.prepare_code_representation(ast_analysis)
+        return self.analyze_with_dataflow(code_representation)
+
+    def prepare_code_representation(self, ast_analysis):
+        """Creates structured representation with dataflow"""
+        functions = ast_analysis['code_structure']['functions']
+        api_calls = ast_analysis['semantic_patterns']['api_patterns']['external_calls']
+
+        # Build dataflow representation
+        code_repr = []
+        for func in functions:
+            code_repr.append(f"function {func['name']} ({', '.join(func['args'])})")
+            code_repr.append(f"complexity: {func['complexity']}")
+
+        for call in api_calls:
+            code_repr.append(f"calls: {call['module']}.{call['function']}")
+
+        return ' '.join(code_repr)
+
+    def analyze_with_dataflow(self, code_repr):
+        """Analyzes code with dataflow awareness"""
+        inputs = self.tokenizer(code_repr, return_tensors='pt', padding=True, truncation=True)
+        outputs = self.model(**inputs)
+
+        # Extract meaningful features from model output
+        features = outputs.last_hidden_state.mean(dim=1)
+        return self.generate_natural_summary(features)
+
+    def generate_natural_summary(self, features):
+        """Converts model features to natural language summary"""
+        # Map features to predefined summary templates
+        return self.map_features_to_summary(features)
+
+
+
+    def map_features_to_summary(self, features):
+        """Maps model features to human-readable summaries"""
+        summary_templates = {
+            'api': "This code implements API interactions for {}",
+            'data': "This code processes data with {}",
+            'threading': "This code handles concurrent operations using {}",
+            'io': "This code manages I/O operations for {}"
+        }
+
+        # Convert features to category scores
+        scores = torch.nn.functional.softmax(features, dim=-1)
+        category_idx = scores.argmax().item()
+
+        categories = list(summary_templates.keys())
+        selected_category = categories[min(category_idx, len(categories)-1)]
+
+        return summary_templates[selected_category].format(
+            self.get_specific_functionality(features)
+        )
+
+class CodeBERTAnalyzer:
+    def __init__(self):
+        self.model_name = "microsoft/codebert-base"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
+
+    def get_primary_functionality(self, predictions):
+        """Extracts primary functionality from predictions"""
+        # Convert predictions to meaningful text
+        top_tokens = torch.topk(predictions[0], 5)
+        tokens = [self.tokenizer.decode(token_id) for token_id in top_tokens.indices[0]]
+        return " ".join(tokens)
+
+    def generate_summary(self, ast_analysis):
+        input_text = self.prepare_input(ast_analysis)
+        inputs = self.tokenizer(input_text, return_tensors='pt', padding=True, truncation=True)
+        outputs = self.model(**inputs)
+
+        # Extract meaningful embeddings
+        embeddings = outputs.last_hidden_state[:, 0, :]  # Using [CLS] token
+
+        # Map embeddings to predefined code concepts
+        code_concepts = [
+            "reads and writes data",
+            "processes information",
+            "handles API calls",
+            "manages threading",
+            "implements error handling"
+        ]
+
+        summary = self.map_embeddings_to_concepts(embeddings, code_concepts)
+        return f"This code {summary}"
+
+    def map_embeddings_to_concepts(self, embeddings, concepts):
+        """Maps code embeddings to predefined concepts"""
+        # Ensure we have valid concepts
+        if not concepts:
+            return "implements multiple functionalities"
+
+        # Convert embeddings to similarity scores
+        concept_embeddings = self.get_concept_embeddings(concepts)
+        scores = torch.nn.functional.cosine_similarity(
+            embeddings.unsqueeze(1),
+            concept_embeddings.unsqueeze(0)
+        )
+
+        # Get top matching concept with bounds checking
+        top_idx = min(scores.argmax().item(), len(concepts) - 1)
+        return concepts[top_idx]
+
+    def get_concept_embeddings(self, concepts):
+        """Gets embeddings for concept phrases"""
+        with torch.no_grad():
+            inputs = self.tokenizer(concepts, return_tensors='pt', padding=True, truncation=True)
+            outputs = self.model(**inputs)
+            return outputs.last_hidden_state[:, 0, :]
+
+
+
+
+    def features_to_summary(self, features):
+        # Convert model features to natural language
+        summary_tokens = self.tokenizer.convert_ids_to_tokens(
+            features.argmax(dim=-1).tolist()
+        )
+        return self.tokenizer.convert_tokens_to_string(summary_tokens)
+
+    def prepare_input(self, ast_analysis):
+        """Prepares AST analysis for CodeBERT input"""
+        sections = []
+
+        # Add functions
+        functions = ast_analysis['code_structure']['functions']
+        sections.append("Functions:")
+        for func in functions:
+            sections.append(f"- {func['name']} (args: {', '.join(func['args'])})")
+
+        # Add API patterns
+        api_calls = ast_analysis['semantic_patterns']['api_patterns']['external_calls']
+        sections.append("\nAPI Calls:")
+        for call in api_calls[:5]:
+            sections.append(f"- {call['module']}.{call['function']}")
+
+        return "\n".join(sections)
+
+    def process_outputs(self, outputs):
+        """Processes CodeBERT outputs into meaningful summaries"""
+        logits = outputs.logits
+        predictions = torch.nn.functional.softmax(logits, dim=-1)
+        return self.convert_predictions_to_summary(predictions)
+
+    def convert_predictions_to_summary(self, predictions):
+        """Converts model predictions to human-readable summary"""
+        # We'll enhance this based on CodeBERT's output structure
+        return "This code implements " + self.get_primary_functionality(predictions)
+
+
+
+
+
+class CodeT5Analyzer:
+    def __init__(self):
+        self.model_name = "Salesforce/codet5-base"
+        self.tokenizer = RobertaTokenizer.from_pretrained(self.model_name)
+        self.model = T5ForConditionalGeneration.from_pretrained(self.model_name)
+
+    def generate_summary(self, ast_analysis):
+        # Create a more focused prompt
+        prompt = (
+            "Task: Create a clear Python code summary\n"
+            "Context: This code contains functions and API calls\n"
+            "Required format: Write 3-4 sentences describing the main purpose and functionality\n\n"
+            f"Code structure:\n{self.format_ast_for_model(ast_analysis)}\n"
+            "Summary:"
+        )
+
+        inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+
+        outputs = self.model.generate(
+            inputs.input_ids,
+            max_length=150,
+            num_beams=4,
+            temperature=0.6,  # Reduced for more focused output
+            top_p=0.9,
+            repetition_penalty=1.2,
+            length_penalty=1.0,
+            early_stopping=True
+        )
+
+        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+
+
+
+    def format_ast_for_model(self, ast_analysis):
+        """Formats AST analysis into text for CodeT5"""
+        formatted_text = []
+
+        # Add function information
+        functions = ast_analysis['functions']
+        formatted_text.append("Functions Analysis:")
+        for func_name in functions:
+            formatted_text.append(f"Function: {func_name}")
+
+        # Add file summary
+        if 'file_summary' in ast_analysis:
+            formatted_text.append("\nFile Summary:")
+            formatted_text.append(ast_analysis['file_summary'])
+
+        return "\n".join(formatted_text)
+
+
+
+
+
+
 
 
 class EnhancedCodeAnalyzer:
@@ -870,21 +1158,16 @@ def main():
                         print(f"  Handles {handler['exception']} with {handler['recovery']}")
                 print("\nOperations:", ', '.join(analysis['operations']))
 
-import argparse
 
 if __name__ == "__main__":
-    test_path = "D:\\LongT5"
-    for file in glob.glob(f"{test_path}/*.py"):
-        with open(file, 'r', encoding='utf-8') as f:
-            tree = ast.parse(f.read())
-            analyzer = ASTLLMAnalyzer(tree)
-            results = analyzer.format_for_llm()
-            print(f"\nAnalysis for {file}:")
-            print(json.dumps(results, indent=2))
+    # Using your existing AST analysis
+    # First create the AST analyzer
+    with open("D:\\LongT5\\read_write_diff_th.py", 'r', encoding='utf-8') as f:
+        tree = ast.parse(f.read())
+    ast_analyzer = ASTLLMAnalyzer(tree)
+    ast_results = ast_analyzer.format_for_llm()
 
-
-r"""
-python enhanced_analyzer.py --github https://github.com/rajeevhotmail/youtube_speechToText
-python enhanced_analyzer.py --directory D:\myproject
-python enhanced_analyzer.py --file D:\myproject\script.py
-"""
+    # Then create and use the CodeBERT analyzer
+    analyzer = CodeLlamaAnalyzer()
+    summary = analyzer.generate_summary(ast_results)
+    print("Code Summary:", summary)
